@@ -1,38 +1,41 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const slice = createSlice({
-  name: "todo",
+  name: "users",
   initialState: {
+    users: [],
     todos: [],
-    todoObj: {
-      name: "",
-      desc: "",
-      check: false,
-      completed: false
-    }
+    obj: { username: "", age: "" },
+    currentUser: ""
   },
   reducers: {
-    saveName: (state, action) => {
-      state.todoObj = { ...state.todoObj, name: action.payload };
+    getUsers: (state, action) => {
+      state.users = action.payload;
+      state.currentUser = "";
     },
-    saveDesc: (state, action) => {
-      state.todoObj = { ...state.todoObj, desc: action.payload };
-    },
-
     getTodos: (state, action) => {
       state.todos = action.payload;
+    },
+    getName: (state, action) => {
+      state.obj = { ...state.obj, username: action.payload };
+    },
+    getAge: (state, action) => {
+      state.obj = { ...state.obj, age: action.payload };
+    },
+    editUser: (state, action) => {
+      state.currentUser = action.payload.id;
+      state.obj = action.payload;
     }
   }
 });
 
-function saveTodo(data) {
+function loadUsers() {
   return {
     type: "apiCall",
     payload: {
-      url: "/todos",
-      method: "POST",
-      data,
-      onSuccess: loadTodos
+      method: "GET",
+      path: "users",
+      onSuccess: slice.actions.getUsers
     }
   };
 }
@@ -41,61 +44,43 @@ function loadTodos() {
   return {
     type: "apiCall",
     payload: {
-      url: "/todos",
       method: "GET",
+      path: "todos",
       onSuccess: slice.actions.getTodos
     }
   };
 }
 
-function deleteTodos(id) {
+function saveUsers(data) {
   return {
     type: "apiCall",
     payload: {
-      url: "/todos/" + id,
+      method: "POST",
+      path: "users",
+      data,
+      onSuccess: loadUsers
+    }
+  };
+}
+
+function deleteUser(id) {
+  return {
+    type: "apiCall",
+    payload: {
       method: "DELETE",
-      onSuccess: loadTodos
-    }
-  };
-}
-
-function changePending(itm) {
-  return {
-    type: "apiCall",
-    payload: {
-      url: "/todos/" + itm.id,
-      method: "PATCH",
-      data: { completed: !itm.completed },
-      onSuccess: loadTodos
-    }
-  };
-}
-
-function deleteCompleted(todos) {
-  const a = todos.filter((itm) => {
-    if (!itm.completed) {
-      return itm;
-    }
-  });
-
-  return {
-    type: "apiCall",
-    payload: {
-      url: "/",
-      method: "PUT",
-      data: { todos: a },
-      onSuccess: loadTodos
+      path: "users",
+      id,
+      onSuccess: loadUsers
     }
   };
 }
 
 export const actions = {
   ...slice.actions,
-  saveTodo,
-  loadTodos,
-  changePending,
-  deleteCompleted,
-  deleteTodos
+  loadUsers,
+  saveUsers,
+  deleteUser,
+  loadTodos
 };
 
 export const todoSlice = slice;
